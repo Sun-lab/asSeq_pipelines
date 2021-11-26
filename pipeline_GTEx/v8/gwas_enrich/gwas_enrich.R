@@ -319,7 +319,8 @@ run_gwasEnrich_analysis = function(DATA,work_dir,
 	
 	all_EE = names(DATA)
 	all_EE = all_EE[grepl("^EE_",all_EE)]
-	cat(sprintf("%s: Detected %s columns with 'EE_' ...\n",
+	if( verbose )  
+	  cat(sprintf("%s: Detected %s columns with 'EE_' ...\n",
 		date(),length(all_EE)))
 	
 	# Get GWAS catalog
@@ -354,7 +355,7 @@ run_gwasEnrich_analysis = function(DATA,work_dir,
 	}
 	
 	# Calculate overall gwas enrichment
-	cat(sprintf("%s: Calculate overall enrichment ...\n",date()))
+	if( verbose ) cat(sprintf("%s: Calculate overall enrichment ...\n",date()))
 	num_test_loci = nrow(DATA)
 	num_gwas = sum(DATA$GG)
 	gwas_enrich = c()
@@ -376,7 +377,7 @@ run_gwasEnrich_analysis = function(DATA,work_dir,
 	if( verbose ) print(gwas_enrich)
 	
 	# Sort positions and run block jackknife for enrichment
-	cat(sprintf("%s: Run block jackknife enrichment ...\n",date()))
+	if( verbose ) cat(sprintf("%s: Run block jackknife enrichment ...\n",date()))
 	chrs2 = intersect(chrs,unique(DATA$Chr))
 	chrs2 = chrs[chrs %in% chrs2]; chrs2
 	DATA$chr2 = factor(DATA$Chr,levels = chrs)
@@ -484,7 +485,7 @@ sim_EQTL_RES = function(work_dir){
 	table(dat$EE_A1, dat$EE_A2)
 	
 	dim(dat)
-	# dat[1:5,]
+	dat[1:5,]
 	write.table(dat, file.path(work_dir, "simu_data.tsv"), 
 	            sep = "\t", quote = FALSE, row.names = FALSE)
 	
