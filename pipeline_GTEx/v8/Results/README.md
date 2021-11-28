@@ -4,7 +4,7 @@ Each folder contains findings for one particular tissue.
 
 In the main folder the results for two types of models were fitted:
 
-## Main finding Models: 
+## Main finding models: 
 
 long - model including library all the covariates according to the GTEx approach, including: depth, sex and gPCs and PEER factors,
 
@@ -42,7 +42,7 @@ final_Pvalue - final p-value is either the p-value from the joint model or the p
 
 permp - permutation p-value (for final_Pvalue in TReCASE related file, for TReC_Pvalue for TReC related file and for ASE_Pvalue for ASE related file)
 
-##Dynamic eQTLs are stored in BetaBin folder:
+## Dynamic eQTLs are stored in BetaBin folder:
 
 For three examples of factors of interest (age,  CTCF expression and TP53 expression) we fitted the model searching for changes of eQTL size.
 
