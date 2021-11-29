@@ -2,13 +2,13 @@
 
 Each folder contains findings for one particular tissue.
 
-In the main folder the results for two types of models were fitted:
+## eQTL results. 
 
-## Main finding models: 
+In each tissue-specific folder, there are results for two types of models:
 
-long - model including all the covariates according to the GTEx study, including: read depth, sex,  genotype PCs, and PEER factors,
+- long model: including all the covariates used in the GTEx study, including: read depth, sex,  genotype PCs, and PEER factors. This is the default model that we used to report the eQTL findings. 
 
-short - covariates only first five PEER factors along with gPCs.
+- short model: reduction of the the long model by using only top 5 PEER factors together with all other covariates.
 
 TReCASE package produces the results for joint model, but also for TReC or ASE components of the model separately, thus each model has three output files: the file including the results for the minimum SNP chosen by the full model (using suffix _TReCASE_) as well as for TReC only part of the model (_TReC_) or ASE only part of the model (_ASE_)
 
@@ -44,17 +44,17 @@ permp - permutation p-value (for final_Pvalue in TReCASE related file, for TReC_
 
 ## Dynamic eQTLs are stored in BetaBin folder:
 
-For three examples of factors of interest (age,  CTCF expression and TP53 expression) we fitted the model searching for changes of eQTL size.
+For three contexts of dynamic eQTL or factors of interest (age,  CTCF expression and TP53 expression) we fitted the model searching for changes of eQTL size.
 
-This model is fit only for the case we are think that we found a dynamic eQTL (i.e. permutation p-value from the TReCASE model passed 0.01 significance)
+This model is fit only for the eGenes with permutation p-value from the TReCASE model smaller than 0.01 and we only consider the SNP with minimum p-value for each eGene. 
 
 We fit 3 models: 
 
-nocov - only an association between the factor of interest and allele-specific expression,
+- nocov - only an association between the factor of interest and allele-specific expression,
 
-gPC - association between the factor of interest and allele-specific expression including first two gPCs as covariates,
+- gPC - association between the factor of interest and allele-specific expression including first two gPCs as covariates,
 
-gPC_PF - association between the factor of interest and allele-specific expression including first two gPCs and first three Peer Factors as covariates,
+- gPC_PF - association between the factor of interest and allele-specific expression including first two gPCs and first three Peer Factors as covariates,
 
 Columns include:
 
