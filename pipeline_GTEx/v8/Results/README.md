@@ -14,33 +14,33 @@ TReCASE package produces the results for joint model, but also for TReC or ASE c
 
 Columns include:
 
-gene ids,
+- gene ids,
 
-MarkerRowID - minimum SNP id
+- MarkerRowID - minimum SNP id
 
-Pos - minimum SNP position
+- Pos - minimum SNP position
 
-NBod - over-dispersion for Negative-Binomial distribution
+- NBod - over-dispersion for Negative-Binomial distribution
 
-BBod - over-dispersion for Negative-Binomial distribution
+- BBod - over-dispersion for Negative-Binomial distribution
 
-TReC_b - additive effect size (log fold change) for TReC part of the model
+- TReC_b - additive effect size (log fold change) for TReC part of the model
 
-TReC_Pvalue - associated with it p-value
+- TReC_Pvalue - associated with it p-value
 
-ASE_b - additive effect size (log fold change) for ASE part of the model	
+- ASE_b - additive effect size (log fold change) for ASE part of the model	
 
-ASE_Pvalue - associated with it p-value
+- ASE_Pvalue - associated with it p-value
 
-Joint_b	- additive effect size (log fold change) for joint TReCASE model
+- Joint_b	- additive effect size (log fold change) for joint TReCASE model
 
-Joint_Pvalue - associated p-value
+- Joint_Pvalue - associated p-value
 
-trans_Pvalue - test for discordance between TReC and ASE parts of the model
+- trans_Pvalue - test for discordance between TReC and ASE parts of the model
 
-final_Pvalue - final p-value is either the p-value from the joint model or the p-value from the TReC model (if trans_Pvalue is significant)
+- final_Pvalue - final p-value is either the p-value from the joint model or the p-value from the TReC model (if trans_Pvalue is significant)
 
-permp - permutation p-value (for final_Pvalue in TReCASE related file, for TReC_Pvalue for TReC related file and for ASE_Pvalue for ASE related file)
+- permp - permutation p-value (for final_Pvalue in TReCASE related file, for TReC_Pvalue for TReC related file and for ASE_Pvalue for ASE related file)
 
 ## Dynamic eQTLs are stored in BetaBin folder:
 
@@ -58,18 +58,18 @@ We fit 3 models:
 
 Columns include:
 
-nm - gene id,
+- nm - gene id,
 
-od - over-dispersion (NA if binomial model is used due to low over-dispersion)
+- od - over-dispersion (NA if binomial model is used due to low over-dispersion)
 
-int, b.gPC1, b.gPC2, b.PF1, b.PF2, b.PF3, b.PF4, b.PF5 - covariates included in the model
+- int, b.gPC1, b.gPC2, b.PF1, b.PF2, b.PF3, b.PF4, b.PF5 - covariates included in the model
 
-b.cnd - condition of interest (age, CTCF or TP53 in these examples)
+- b.cnd - condition of interest (age, CTCF or TP53 in these examples)
 
-e.int, e.od, e.gPC1, e.gPC2, e.PF1, e.PF2, e.PF3, e.PF4, e.PF5, e.cnd - respective errors
+- e.int, e.od, e.gPC1, e.gPC2, e.PF1, e.PF2, e.PF3, e.PF4, e.PF5, e.cnd - respective errors
 
-pval - likelihood ratio test for the condition of interest,
+- pval - likelihood ratio test for the condition of interest,
 
-status - 0 if beta-binomial model was fitted and 1 if binomial model was fitted
+- status - 0 if beta-binomial model was fitted and 1 if binomial model was fitted
 
-qval - qvalue produced from pval
+- qval - qvalue produced from pval
