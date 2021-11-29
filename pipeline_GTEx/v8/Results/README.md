@@ -6,11 +6,11 @@ In the main folder the results for two types of models were fitted:
 
 ## Main finding models: 
 
-long - model including library all the covariates according to the GTEx approach, including: depth, sex and gPCs and PEER factors,
+long - model including all the covariates according to the GTEx study, including: read depth, sex,  genotype PCs, and PEER factors,
 
 short - covariates only first five PEER factors along with gPCs.
 
-TReCASE package produces the results for joint model, but also for TReC or ASE components of the model separately, thus each model has three output files: the file including the results for the minimum SNP chosen by the ful model (using suffix _TReCASE_) as well as for TReC only part of the model (_TReC_) or ASE only part of the model (_ASE_)
+TReCASE package produces the results for joint model, but also for TReC or ASE components of the model separately, thus each model has three output files: the file including the results for the minimum SNP chosen by the full model (using suffix _TReCASE_) as well as for TReC only part of the model (_TReC_) or ASE only part of the model (_ASE_)
 
 Columns include:
 
