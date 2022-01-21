@@ -6,3 +6,5 @@ information for two example gene processed according to asSeq pipeline, includes
 + samples.dat - design matrix information including log(sample depth) and several PCs
 
 Files Tcnt_ex.dat and samples.dat will be reformatted to be used by RASQUAL: Y.bin, X.bin and K.bin
+
+# Tcnt -> TReC, A1_ex.dat to ASReC_hap1_ex.txt and A2 tp ASReC_hap2, add explanation for other files such as GE_ex.dat
