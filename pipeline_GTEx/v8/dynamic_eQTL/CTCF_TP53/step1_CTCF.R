@@ -2,76 +2,79 @@
 library(data.table)
 library(GenomicRanges)
 
-# --------------------------------------------------------------------
-# read in resutls
-# --------------------------------------------------------------------
-
-ctcf_file = "long_quasi_Whole_Blood_ctcf.csv"
-ctcf = fread(file.path("../results/GTEx8_Whole_Blood_summary/", ctcf_file))
-dim(ctcf)
-ctcf[1:2,]
-
-summary(ctcf$p_cond)
-pi0 = 2*mean(ctcf$p_cond > 0.5)
-pi0
-
-qval = nrow(ctcf)*pi0*ctcf$p_cond/rank(ctcf$p_cond)
-table(ctcf$p_cond < 0.01)
-table(qval < 0.01)
-table(qval < 0.05)
-table(qval < 0.10)
-table(qval < 0.15)
-table(qval < 0.20)
-
-ctcf$qval = qval
+TF = "TP53"
 
 # --------------------------------------------------------------------
-# read in gene annoation information
+# read in results
+# --------------------------------------------------------------------
+
+tissues = list.dirs("../../Results", full.names=FALSE, 
+                    recursive=FALSE)
+
+ctcf_all = NULL
+
+for(t1 in tissues){
+  ctcf_file = sprintf("%s_ctcf_long_gPC_PF_01.csv", t1)
+  ctcf = fread(sprintf("../../Results/%s/BetaBin/%s", t1, ctcf_file))
+  n1 = nrow(ctcf)
+  
+  ctcf = ctcf[ctcf$qval < 0.1,.(nm, pval, status, qval)]
+  n2 = nrow(ctcf)
+  ctcf$tissue = rep(t1, nrow(ctcf))
+  
+  ctcf_all = rbind(ctcf_all, ctcf)
+  cat(sprintf("%s, %d, %d\n", t1, n1, n2))
+}
+
+ctcf_all[1:2,]
+
+table(ctcf_all$tissue)
+
+t2 = table(ctcf_all$nm)
+table(t2)
+t2[t2==2]
+
+table(ctcf_all$status)
+tapply(ctcf_all$qval, ctcf_all$status, summary)
+
+# --------------------------------------------------------------------
+# read in gene annotation information
 # --------------------------------------------------------------------
 
 gene_file = "gencode.v26.GRCh38.genes_gene_level_anno.txt"
-gene_file = file.path("../Reference", gene_file)
+gene_file = file.path("../../Reference", gene_file)
 genes = fread(gene_file)
 dim(genes)
 genes[1:2,]
 
-table(ctcf$id %in% genes$geneId)
-mat1 = match(ctcf$id, genes$geneId)
+table(ctcf_all$nm %in% genes$geneId)
 
-ctcf = cbind(ctcf, genes[mat1,])
-dim(ctcf)
-ctcf[1:2,]
+mat1 = match(unique(ctcf_all$nm), genes$geneId)
+ctcf_genes = genes$hgnc_symbol[mat1]
+length(ctcf_genes)
+table(ctcf_genes == "")
 
-ctcf$promoter_start = rep(NA, nrow(ctcf))
-ctcf$promoter_end   = rep(NA, nrow(ctcf))
-
-wn = which(ctcf$strand == "-")
-wp = which(ctcf$strand == "+")
-
-ctcf$promoter_start[wn] = ctcf$end[wn]
-ctcf$promoter_end[wn]   = ctcf$end[wn] + 199
-
-ctcf$promoter_start[wp] = ctcf$start[wp] - 199
-ctcf$promoter_end[wp]   = ctcf$start[wp]
-
-dim(ctcf)
-ctcf[1:5,]
-
-gr1 = makeGRangesFromDataFrame(ctcf, ignore.strand=TRUE, 
-                               seqnames.field="chr",
-                               start.field="promoter_start", 
-                               end.field="promoter_end")
+ctcf_genes = ctcf_genes[which(ctcf_genes != "")]
+cat(ctcf_genes, sep="\n")
 
 # --------------------------------------------------------------------
-# read in CTCF binding site information
+# read in CTCF target gene information
 # --------------------------------------------------------------------
 
-ff1  = "CTCFBSDB_all_exp_sites_Sept12_2012_hg38_loci.bed.gz"
-ff1  = file.path("../Reference/CTCF/", ff1)
+dir1 = "~/research/data/human/harmonizome/CHEA"
+ff1  = "gene_attribute_matrix.txt.gz"
+ff1  = file.path(dir1, ff1)
 
-ctcf.bs = fread(ff1)
-dim(ctcf.bs)
-ctcf.bs[1:5,]
+tf.gene = fread(ff1, data.table=FALSE, na.strings = "na")
+dim(tf.gene)
+tf.gene[1:5,1:5]
+
+table(tf.gene$CTCF)
+
+ctcf_targets = tf.gene[which(tf.gene$CTCF == 1),1]
+length(ctcf_targets)
+
+table(ctcf_genes %in% ctcf_targets)
 
 names(ctcf.bs) = c("chr", "start", "end")
 table(ctcf.bs$chr)
@@ -79,7 +82,7 @@ table(ctcf.bs$chr)
 lens = ctcf.bs$end - ctcf.bs$start + 1
 summary(lens)
 
-pdf("../Reference/CTCF/CTCFBS_len_hist.pdf", width=6, height=4)
+pdf("../../Reference/CTCF/CTCFBS_len_hist.pdf", width=6, height=4)
 par(mar=c(5,4,1,1), bty="n")
 hist(log10(lens), xlab="log10(CTCF BS length)", main="", breaks=100)
 abline(v=log10(200))
@@ -119,14 +122,14 @@ table(!is.na(mtch2))
 mtch3 = findOverlaps(gr1, gr3, select="first")
 table(!is.na(mtch3))
 
-table(qval < 0.1, !is.na(mtch2))
-table(qval < 0.1, !is.na(mtch3))
+table(ctcf$qval < 0.1, !is.na(mtch2))
+table(ctcf$qval < 0.1, !is.na(mtch3))
 
-chisq.test(qval < 0.05, !is.na(mtch2))
-chisq.test(qval < 0.05, !is.na(mtch3))
+table(ctcf$qval < 0.25, !is.na(mtch2))
+table(ctcf$qval < 0.25, !is.na(mtch3))
 
-chisq.test(qval < 0.1, !is.na(mtch2))
-chisq.test(qval < 0.1, !is.na(mtch3))
+chisq.test(ctcf$qval < 0.1, !is.na(mtch2))
+chisq.test(ctcf$qval < 0.1, !is.na(mtch3))
 
 gc()
 sessionInfo()
