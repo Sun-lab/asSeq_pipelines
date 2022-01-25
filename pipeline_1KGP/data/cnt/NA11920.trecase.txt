@@ -1,0 +1,4 @@
+"NA11920_filtered.bam" "NA11920_filtered_sorted_byQname_hap1.bam" "NA11920_filtered_sorted_byQname_hap2.bam" "NA11920_filtered_sorted_byQname_hapN.bam"
+"ENSG00000008128.22" 358 28 7 67
+"ENSG00000008130.15" 938 0 0 38
+"ENSG00000189339.11" 85 0 0 20

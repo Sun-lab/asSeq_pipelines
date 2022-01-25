@@ -1,0 +1,4 @@
+"NA12775_filtered.bam" "NA12775_filtered_sorted_byQname_hap1.bam" "NA12775_filtered_sorted_byQname_hap2.bam" "NA12775_filtered_sorted_byQname_hapN.bam"
+"ENSG00000008128.22" 291 0 0 0
+"ENSG00000008130.15" 1322 0 0 0
+"ENSG00000189339.11" 75 0 0 0

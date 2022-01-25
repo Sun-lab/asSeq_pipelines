@@ -1,0 +1,4 @@
+"HG00179_filtered.bam" "HG00179_filtered_sorted_byQname_hap1.bam" "HG00179_filtered_sorted_byQname_hap2.bam" "HG00179_filtered_sorted_byQname_hapN.bam"
+"ENSG00000008128.22" 243 12 35 33
+"ENSG00000008130.15" 755 0 0 17
+"ENSG00000189339.11" 16 0 0 0
