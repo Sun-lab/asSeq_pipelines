@@ -15,4 +15,4 @@ This folder contains some data files and codes to run eQTL analysis using the da
 
 - v1_vs_v2: compare asSeq v1 vs. v2 (../asSeq2) where v1 uses standard glm model and v2 uses numerical optimization. 
 
-
+- test_scr.R: example R code to call ```Docker/get_TReC_ASReC.R``` to generate TReC and ASReC data. 

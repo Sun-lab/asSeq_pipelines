@@ -41,7 +41,7 @@ genes_all = unique(genes_all)
 length(genes_all)
 
 # --------------------------------------------------------------------
-# read in gene annoation information
+# read in gene annotation information
 # --------------------------------------------------------------------
 
 gene_file = "gencode.v26.GRCh38.genes_gene_level_anno.txt"
@@ -155,11 +155,11 @@ table(genes$ctcf_eQTL, !is.na(mtch3))
 c1 = chisq.test(genes$ctcf_eQTL, !is.na(mtch2))
 c2 = chisq.test(genes$ctcf_eQTL, !is.na(mtch3))
 
-c1$statistic
+c1
 c1$expected
 c1$observed
 
-c2$statistic
+c2
 c2$expected
 c2$observed
 
@@ -184,6 +184,45 @@ c2
 c2$expected
 c2$observed
 
+# --------------------------------------------------------------------
+# Compare q-value between genes with or without CTCF binding sites
+# --------------------------------------------------------------------
+
+dim(ctcf_all)
+ctcf_all[1:2,]
+
+genes_with_CTCF = genes_eQTL$geneId[!is.na(mtch2)]
+length(genes_with_CTCF)
+
+ctcf_all$CTCF = rep(0, nrow(ctcf_all))
+ctcf_all$CTCF[which(ctcf_all$nm %in% genes_with_CTCF)] = 1
+table(ctcf_all$CTCF)
+
+
+genes_with_CTCF = genes_eQTL$geneId[!is.na(mtch3)]
+length(genes_with_CTCF)
+
+ctcf_all$CTCF_200bp = rep(0, nrow(ctcf_all))
+ctcf_all$CTCF_200bp[which(ctcf_all$nm %in% genes_with_CTCF)] = 1
+table(ctcf_all$CTCF_200bp)
+
+wilcox.test(ctcf_all$qval ~ ctcf_all$CTCF)
+wilcox.test(ctcf_all$qval ~ ctcf_all$CTCF_200bp)
+
+# --------------------------------------------------------------------
+# Check ASReC data
+# --------------------------------------------------------------------
+
+table(ctcf_all$tissue == "Whole_Blood")
+genes2check = ctcf$nm[ctcf$tissue == "Whole_Blood"]
+
+fnm = "../ASE_Whole_Blood_counts/Whole_Blood_preprASE_long.csv.gz"
+asrec = fread(fnm, header=TRUE)
+
+table(genes2check %in% asrec$V1)
+
+dim(asrec)
+asrec[1:2,1:5]
 
 gc()
 sessionInfo()

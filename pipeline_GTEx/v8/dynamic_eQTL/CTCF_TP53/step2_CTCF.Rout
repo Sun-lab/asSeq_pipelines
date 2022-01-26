@@ -171,7 +171,7 @@ t3
 [1] 22296
 > 
 > # --------------------------------------------------------------------
-> # read in gene annoation information
+> # read in gene annotation information
 > # --------------------------------------------------------------------
 > 
 > gene_file = "gencode.v26.GRCh38.genes_gene_level_anno.txt"
@@ -419,9 +419,13 @@ FALSE  TRUE
 > c1 = chisq.test(genes$ctcf_eQTL, !is.na(mtch2))
 > c2 = chisq.test(genes$ctcf_eQTL, !is.na(mtch3))
 > 
-> c1$statistic
-X-squared 
- 22.67226 
+> c1
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  genes$ctcf_eQTL and !is.na(mtch2)
+X-squared = 22.672, df = 1, p-value = 1.921e-06
+
 > c1$expected
                !is.na(mtch2)
 genes$ctcf_eQTL       FALSE        TRUE
@@ -433,9 +437,13 @@ genes$ctcf_eQTL FALSE  TRUE
           FALSE 24639 31395
           TRUE     42   124
 > 
-> c2$statistic
-X-squared 
- 32.45395 
+> c2
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  genes$ctcf_eQTL and !is.na(mtch3)
+X-squared = 32.454, df = 1, p-value = 1.221e-08
+
 > c2$expected
                !is.na(mtch3)
 genes$ctcf_eQTL      FALSE        TRUE
@@ -502,11 +510,86 @@ genes_eQTL$ctcf_eQTL FALSE  TRUE
                FALSE  8550 13580
                TRUE     67    99
 > 
+> # --------------------------------------------------------------------
+> # Compare q-value between genes with or without CTCF binding sites
+> # --------------------------------------------------------------------
+> 
+> dim(ctcf_all)
+[1] 171   5
+> ctcf_all[1:2,]
+                   nm         pval status       qval               tissue
+1: ENSG00000155761.13 3.642547e-05      1 0.05690087 Adipose_Subcutaneous
+2:  ENSG00000143545.8 3.787925e-06      1 0.02743863 Adipose_Subcutaneous
+> 
+> genes_with_CTCF = genes_eQTL$geneId[!is.na(mtch2)]
+> length(genes_with_CTCF)
+[1] 16983
+> 
+> ctcf_all$CTCF = rep(0, nrow(ctcf_all))
+> ctcf_all$CTCF[which(ctcf_all$nm %in% genes_with_CTCF)] = 1
+> table(ctcf_all$CTCF)
+
+  0   1 
+ 45 126 
+> 
+> 
+> genes_with_CTCF = genes_eQTL$geneId[!is.na(mtch3)]
+> length(genes_with_CTCF)
+[1] 13679
+> 
+> ctcf_all$CTCF_200bp = rep(0, nrow(ctcf_all))
+> ctcf_all$CTCF_200bp[which(ctcf_all$nm %in% genes_with_CTCF)] = 1
+> table(ctcf_all$CTCF_200bp)
+
+  0   1 
+ 71 100 
+> 
+> wilcox.test(ctcf_all$qval ~ ctcf_all$CTCF)
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  ctcf_all$qval by ctcf_all$CTCF
+W = 2681, p-value = 0.5902
+alternative hypothesis: true location shift is not equal to 0
+
+> wilcox.test(ctcf_all$qval ~ ctcf_all$CTCF_200bp)
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  ctcf_all$qval by ctcf_all$CTCF_200bp
+W = 3807.5, p-value = 0.4204
+alternative hypothesis: true location shift is not equal to 0
+
+> 
+> # --------------------------------------------------------------------
+> # Check ASReC data
+> # --------------------------------------------------------------------
+> 
+> table(ctcf_all$tissue == "Whole_Blood")
+
+FALSE  TRUE 
+  157    14 
+> genes2check = ctcf$nm[ctcf$tissue == "Whole_Blood"]
+> 
+> fnm = "../ASE_Whole_Blood_counts/Whole_Blood_preprASE_long.csv.gz"
+> asrec = fread(fnm, header=TRUE)
+> 
+> table(genes2check %in% asrec$V1)
+
+TRUE 
+  14 
+> 
+> dim(asrec)
+[1] 17157   671
+> asrec[1:2,1:5]
+                  V1 GTEX-11ZTT GTEX-15G1A GTEX-11WQK GTEX-17KNJ
+1: ENSG00000227232.5      0|0|0      0|0|0      3|2|0      0|0|0
+2: ENSG00000279457.4      0|0|1      0|0|0      1|0|1      0|0|1
 > 
 > gc()
             used  (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)
-Ncells   2805783 149.9    8475120  452.7         NA  13243279  707.3
-Vcells 100747189 768.7  194967790 1487.5      32768 194227435 1481.9
+Ncells   3076104 164.3    8475120  452.7         NA  13243279  707.3
+Vcells 113877032 868.9  194967790 1487.5      32768 194230226 1481.9
 > sessionInfo()
 R version 4.1.2 (2021-11-01)
 Platform: x86_64-apple-darwin17.0 (64-bit)
@@ -535,4 +618,4 @@ loaded via a namespace (and not attached):
 > q(save = "no")
 > proc.time()
    user  system elapsed 
- 38.999   3.063  42.935 
+ 43.920   3.770  48.799 
