@@ -1,0 +1,621 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> library(data.table)
+> library(GenomicRanges)
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:data.table’:
+
+    first, second
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+
+Attaching package: ‘IRanges’
+
+The following object is masked from ‘package:data.table’:
+
+    shift
+
+Loading required package: GenomeInfoDb
+> 
+> # --------------------------------------------------------------------
+> # read in results
+> # --------------------------------------------------------------------
+> 
+> tissues = list.dirs("../../Results", full.names=FALSE, 
++                     recursive=FALSE)
+> 
+> ctcf_all = NULL
+> genes_all = NULL
+> 
+> for(t1 in tissues){
++   ctcf_file = sprintf("%s_ctcf_long_gPC_PF_01.csv", t1)
++   ctcf = fread(sprintf("../../Results/%s/BetaBin/%s", t1, ctcf_file))
++   n1 = nrow(ctcf)
++   genes_all = c(genes_all, ctcf$nm)
++ 
++   ctcf = ctcf[ctcf$qval < 0.1,.(nm, pval, status, qval)]
++   n2 = nrow(ctcf)
++   ctcf$tissue = rep(t1, nrow(ctcf))
++   
++   ctcf_all = rbind(ctcf_all, ctcf)
++   cat(sprintf("%s, %d, %d\n", t1, n1, n2))
++ }
+Adipose_Subcutaneous, 10672, 10
+Adipose_Visceral_Omentum, 9821, 7
+Artery_Aorta, 9356, 1
+Artery_Coronary, 6736, 8
+Artery_Tibial, 10271, 5
+Brain_Caudate_basal_ganglia, 6773, 2
+Brain_Cerebellar_Hemisphere, 7710, 0
+Brain_Cortex, 7062, 4
+Brain_Frontal_Cortex_BA9, 6310, 4
+Brain_Nucleus_accumbens_basal_ganglia, 6743, 2
+Breast_Mammary_Tissue, 9667, 7
+Cells_Cultured_fibroblasts, 9905, 1
+Colon_Transverse, 9652, 0
+Esophagus_Gastroesophageal_Junction, 8507, 14
+Esophagus_Mucosa, 10230, 4
+Esophagus_Muscularis, 9955, 9
+Heart_Atrial_Appendage, 8649, 5
+Heart_Left_Ventricle, 7908, 9
+Lung, 11021, 4
+Muscle_Skeletal, 9330, 3
+Nerve_Tibial, 11440, 1
+Pancreas, 7519, 12
+Skin_Not_Sun_Exposed_Suprapubic, 10636, 7
+Skin_Sun_Exposed_Lower_leg, 11119, 5
+Stomach, 7833, 11
+Testis, 13223, 11
+Thyroid, 11748, 11
+Whole_Blood, 8544, 14
+> 
+> ctcf_all[1:2,]
+                   nm         pval status       qval               tissue
+1: ENSG00000155761.13 3.642547e-05      1 0.05690087 Adipose_Subcutaneous
+2:  ENSG00000143545.8 3.787925e-06      1 0.02743863 Adipose_Subcutaneous
+> 
+> table(ctcf_all$tissue)
+
+                 Adipose_Subcutaneous              Adipose_Visceral_Omentum 
+                                   10                                     7 
+                         Artery_Aorta                       Artery_Coronary 
+                                    1                                     8 
+                        Artery_Tibial           Brain_Caudate_basal_ganglia 
+                                    5                                     2 
+                         Brain_Cortex              Brain_Frontal_Cortex_BA9 
+                                    4                                     4 
+Brain_Nucleus_accumbens_basal_ganglia                 Breast_Mammary_Tissue 
+                                    2                                     7 
+           Cells_Cultured_fibroblasts   Esophagus_Gastroesophageal_Junction 
+                                    1                                    14 
+                     Esophagus_Mucosa                  Esophagus_Muscularis 
+                                    4                                     9 
+               Heart_Atrial_Appendage                  Heart_Left_Ventricle 
+                                    5                                     9 
+                                 Lung                       Muscle_Skeletal 
+                                    4                                     3 
+                         Nerve_Tibial                              Pancreas 
+                                    1                                    12 
+      Skin_Not_Sun_Exposed_Suprapubic            Skin_Sun_Exposed_Lower_leg 
+                                    7                                     5 
+                              Stomach                                Testis 
+                                   11                                    11 
+                              Thyroid                           Whole_Blood 
+                                   11                                    14 
+> 
+> t2 = table(ctcf_all$nm)
+> table(t2)
+t2
+  1   2 
+161   5 
+> t2[t2==2]
+
+ENSG00000084072.16 ENSG00000100201.20 ENSG00000130640.13 ENSG00000164308.16 
+                 2                  2                  2                  2 
+ ENSG00000254772.9 
+                 2 
+> 
+> t3 = table(genes_all)
+> table(t3)
+t3
+   1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16 
+4289 1574 1186  958  751  691  642  569  581  500  509  464  464  500  487  509 
+  17   18   19   20   21   22   23   24   25   26   27   28 
+ 525  495  485  608  571  589  600  592  623  625  755 1154 
+> 
+> genes_all = unique(genes_all)
+> length(genes_all)
+[1] 22296
+> 
+> # --------------------------------------------------------------------
+> # read in gene annotation information
+> # --------------------------------------------------------------------
+> 
+> gene_file = "gencode.v26.GRCh38.genes_gene_level_anno.txt"
+> gene_file = file.path("../../Reference", gene_file)
+> genes = fread(gene_file, data.table=FALSE)
+> dim(genes)
+[1] 56200     8
+> genes[1:2,]
+              geneId  chr strand     start       end ensembl_gene_id
+1 ENSG00000000003.14 chrX      - 100627109 100639991 ENSG00000000003
+2  ENSG00000000005.5 chrX      + 100584802 100599885 ENSG00000000005
+  hgnc_symbol                                       description
+1      TSPAN6 tetraspanin 6 [Source:HGNC Symbol;Acc:HGNC:11858]
+2        TNMD   tenomodulin [Source:HGNC Symbol;Acc:HGNC:17757]
+> 
+> table(ctcf_all$nm %in% genes$geneId)
+
+TRUE 
+ 171 
+> table(genes_all %in% genes$geneId)
+
+ TRUE 
+22296 
+> 
+> mat1 = match(unique(ctcf_all$nm), genes$geneId)
+> 
+> genes$ctcf_eQTL = rep(FALSE, nrow(genes))
+> genes$ctcf_eQTL[mat1] = TRUE
+> table(genes$ctcf_eQTL)
+
+FALSE  TRUE 
+56034   166 
+> 
+> genes$promoter_start = rep(NA, nrow(genes))
+> genes$promoter_end   = rep(NA, nrow(genes))
+> 
+> wn = which(genes$strand == "-")
+> wp = which(genes$strand == "+")
+> 
+> genes$promoter_start[wn] = genes$end[wn]
+> genes$promoter_end[wn]   = genes$end[wn] + 199
+> 
+> genes$promoter_start[wp] = genes$start[wp] - 199
+> genes$promoter_end[wp]   = genes$start[wp]
+> 
+> dim(genes)
+[1] 56200    11
+> genes[1:5,]
+              geneId   chr strand     start       end ensembl_gene_id
+1 ENSG00000000003.14  chrX      - 100627109 100639991 ENSG00000000003
+2  ENSG00000000005.5  chrX      + 100584802 100599885 ENSG00000000005
+3 ENSG00000000419.12 chr20      -  50934867  50958555 ENSG00000000419
+4 ENSG00000000457.13  chr1      - 169849631 169894267 ENSG00000000457
+5 ENSG00000000460.16  chr1      + 169662007 169854080 ENSG00000000460
+  hgnc_symbol
+1      TSPAN6
+2        TNMD
+3        DPM1
+4       SCYL3
+5    C1orf112
+                                                                                     description
+1                                              tetraspanin 6 [Source:HGNC Symbol;Acc:HGNC:11858]
+2                                                tenomodulin [Source:HGNC Symbol;Acc:HGNC:17757]
+3 dolichyl-phosphate mannosyltransferase subunit 1, catalytic [Source:HGNC Symbol;Acc:HGNC:3005]
+4                                   SCY1 like pseudokinase 3 [Source:HGNC Symbol;Acc:HGNC:19285]
+5                        chromosome 1 open reading frame 112 [Source:HGNC Symbol;Acc:HGNC:25565]
+  ctcf_eQTL promoter_start promoter_end
+1     FALSE      100639991    100640190
+2     FALSE      100584603    100584802
+3     FALSE       50958555     50958754
+4     FALSE      169894267    169894466
+5     FALSE      169661808    169662007
+> 
+> gr1 = makeGRangesFromDataFrame(genes, ignore.strand=TRUE, 
++                                seqnames.field="chr",
++                                start.field="promoter_start", 
++                                end.field="promoter_end")
+> 
+> genes_eQTL = genes[genes$geneId %in% genes_all,]
+> dim(genes_eQTL)
+[1] 22296    11
+> genes_eQTL[1:5,]
+              geneId  chr strand     start       end ensembl_gene_id
+4 ENSG00000000457.13 chr1      - 169849631 169894267 ENSG00000000457
+5 ENSG00000000460.16 chr1      + 169662007 169854080 ENSG00000000460
+6 ENSG00000000938.12 chr1      -  27612064  27635277 ENSG00000000938
+7 ENSG00000000971.15 chr1      + 196651878 196747504 ENSG00000000971
+8 ENSG00000001036.13 chr6      - 143494811 143511690 ENSG00000001036
+  hgnc_symbol
+4       SCYL3
+5    C1orf112
+6         FGR
+7         CFH
+8       FUCA2
+                                                                        description
+4                      SCY1 like pseudokinase 3 [Source:HGNC Symbol;Acc:HGNC:19285]
+5           chromosome 1 open reading frame 112 [Source:HGNC Symbol;Acc:HGNC:25565]
+6 FGR proto-oncogene, Src family tyrosine kinase [Source:HGNC Symbol;Acc:HGNC:3697]
+7                            complement factor H [Source:HGNC Symbol;Acc:HGNC:4883]
+8                           alpha-L-fucosidase 2 [Source:HGNC Symbol;Acc:HGNC:4008]
+  ctcf_eQTL promoter_start promoter_end
+4     FALSE      169894267    169894466
+5     FALSE      169661808    169662007
+6     FALSE       27635277     27635476
+7     FALSE      196651679    196651878
+8     FALSE      143511690    143511889
+> 
+> gr0 = makeGRangesFromDataFrame(genes_eQTL, ignore.strand=TRUE, 
++                                seqnames.field="chr",
++                                start.field="promoter_start", 
++                                end.field="promoter_end")
+> 
+> # --------------------------------------------------------------------
+> # read in CTCF binding site information
+> # --------------------------------------------------------------------
+> 
+> ff1  = "CTCFBSDB_all_exp_sites_Sept12_2012_hg38_loci.bed.gz"
+> 
+> ctcf.bs = fread(file.path("CTCF",ff1))
+> dim(ctcf.bs)
+[1] 10448402        3
+> ctcf.bs[1:5,]
+     V1      V2      V3
+1: chr8 8736906 8737325
+2: chr8 8701456 8701869
+3: chr8 8710338 8710628
+4: chr8 8065311 8065480
+5: chr8 8669716 8669989
+> 
+> names(ctcf.bs) = c("chr", "start", "end")
+> table(ctcf.bs$chr)
+
+                   chr1  chr1_KI270706v1_random     chr1_KI270766v1_alt 
+                 969730                      13                       4 
+                  chr10                   chr11                   chr12 
+                 490175                  550972                  509942 
+                  chr13                   chr14 chr14_GL000009v2_random 
+                 260604                  344464                     367 
+   chr14_KI270846v1_alt                   chr15    chr15_KI270850v1_alt 
+                      7                  354322                     243 
+                  chr16                   chr17    chr17_KI270857v1_alt 
+                 367251                  474524                       2 
+   chr17_KI270909v1_alt                   chr18                   chr19 
+                     11                  220889                  381989 
+   chr19_KI270938v1_alt                    chr2     chr2_KI270773v1_alt 
+                      4                  824735                       3 
+    chr2_KI270894v1_alt                   chr20                   chr21 
+                     37                  293705                  128904 
+                  chr22    chr22_KI270879v1_alt                    chr3 
+                 214706                     302                  646611 
+                   chr4  chr4_GL000008v2_random                    chr5 
+                 491102                     668                  557346 
+                   chr6                    chr7     chr7_KI270803v1_alt 
+                 576843                  528477                    3157 
+                   chr8     chr8_KI270821v1_alt                    chr9 
+                 458630                     180                  444756 
+                   chrM        chrUn_KI270742v1                    chrX 
+                     31                     112                  333300 
+                   chrY 
+                  19284 
+> 
+> lens = ctcf.bs$end - ctcf.bs$start + 1
+> summary(lens)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      2     151     151     357     229 5600130 
+> 
+> pdf("CTCF/CTCFBS_len_hist.pdf", width=6, height=4)
+> par(mar=c(5,4,1,1), bty="n")
+> hist(log10(lens), xlab="log10(CTCF BS length)", main="", breaks=100)
+> dev.off()
+null device 
+          1 
+> 
+> table(lens < 400)/length(lens)
+
+    FALSE      TRUE 
+0.1006113 0.8993887 
+> table(lens < 300)/length(lens)
+
+   FALSE     TRUE 
+0.162616 0.837384 
+> table(lens < 200)/length(lens)
+
+   FALSE     TRUE 
+0.288843 0.711157 
+> 
+> ctcf.bs$start100 = round(0.5*(ctcf.bs$start + ctcf.bs$end)) - 100
+> ctcf.bs$end100   = round(0.5*(ctcf.bs$start + ctcf.bs$end)) + 100
+> 
+> gr2 = makeGRangesFromDataFrame(ctcf.bs, ignore.strand=TRUE, 
++                                seqnames.field="chr",
++                                start.field="start", 
++                                end.field="end")
+> 
+> gr3 = makeGRangesFromDataFrame(ctcf.bs, ignore.strand=TRUE, 
++                                seqnames.field="chr",
++                                start.field="start100", 
++                                end.field="end100")
+> 
+> fun1 <- function(x) sum(width(reduce(x, ignore.strand=T)))
+> fun1(gr1)
+[1] 10991079
+> 
+> width2 = fun1(gr2)
+> width3 = fun1(gr3)
+> width2
+[1] 935925420
+> width3
+[1] 225567964
+> 
+> prp2 = width2/(3234.83*10^6)
+> prp3 = width3/(3234.83*10^6)
+> prp2
+[1] 0.2893275
+> prp3
+[1] 0.06973101
+> 
+> # --------------------------------------------------------------------
+> # check overlap for all annotated genes
+> # --------------------------------------------------------------------
+> 
+> mtch2 = findOverlaps(gr1, gr2, select="first")
+> table(!is.na(mtch2))
+
+FALSE  TRUE 
+24681 31519 
+> 
+> mtch3 = findOverlaps(gr1, gr3, select="first")
+> table(!is.na(mtch3))
+
+FALSE  TRUE 
+34891 21309 
+> 
+> table(genes$ctcf_eQTL, !is.na(mtch2))
+       
+        FALSE  TRUE
+  FALSE 24639 31395
+  TRUE     42   124
+> table(genes$ctcf_eQTL, !is.na(mtch3))
+       
+        FALSE  TRUE
+  FALSE 34824 21210
+  TRUE     67    99
+> 
+> c1 = chisq.test(genes$ctcf_eQTL, !is.na(mtch2))
+> c2 = chisq.test(genes$ctcf_eQTL, !is.na(mtch3))
+> 
+> c1
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  genes$ctcf_eQTL and !is.na(mtch2)
+X-squared = 22.672, df = 1, p-value = 1.921e-06
+
+> c1$expected
+               !is.na(mtch2)
+genes$ctcf_eQTL       FALSE        TRUE
+          FALSE 24608.09883 31425.90117
+          TRUE     72.90117    93.09883
+> c1$observed
+               !is.na(mtch2)
+genes$ctcf_eQTL FALSE  TRUE
+          FALSE 24639 31395
+          TRUE     42   124
+> 
+> c2
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  genes$ctcf_eQTL and !is.na(mtch3)
+X-squared = 32.454, df = 1, p-value = 1.221e-08
+
+> c2$expected
+               !is.na(mtch3)
+genes$ctcf_eQTL      FALSE        TRUE
+          FALSE 34787.9412 21246.05883
+          TRUE    103.0588    62.94117
+> c2$observed
+               !is.na(mtch3)
+genes$ctcf_eQTL FALSE  TRUE
+          FALSE 34824 21210
+          TRUE     67    99
+> 
+> # --------------------------------------------------------------------
+> # check overlap for all genes used in eQTL
+> # --------------------------------------------------------------------
+> 
+> mtch2 = findOverlaps(gr0, gr2, select="first")
+> table(!is.na(mtch2))
+
+FALSE  TRUE 
+ 5313 16983 
+> 
+> mtch3 = findOverlaps(gr0, gr3, select="first")
+> table(!is.na(mtch3))
+
+FALSE  TRUE 
+ 8617 13679 
+> 
+> c1 = chisq.test(genes_eQTL$ctcf_eQTL, !is.na(mtch2))
+> c2 = chisq.test(genes_eQTL$ctcf_eQTL, !is.na(mtch3))
+> 
+> c1
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  genes_eQTL$ctcf_eQTL and !is.na(mtch2)
+X-squared = 0.12626, df = 1, p-value = 0.7223
+
+> c1$expected
+                    !is.na(mtch2)
+genes_eQTL$ctcf_eQTL      FALSE       TRUE
+               FALSE 5273.44322 16856.5568
+               TRUE    39.55678   126.4432
+> c1$observed
+                    !is.na(mtch2)
+genes_eQTL$ctcf_eQTL FALSE  TRUE
+               FALSE  5271 16859
+               TRUE     42   124
+> 
+> c2
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  genes_eQTL$ctcf_eQTL and !is.na(mtch3)
+X-squared = 0.14064, df = 1, p-value = 0.7076
+
+> c2$expected
+                    !is.na(mtch3)
+genes_eQTL$ctcf_eQTL      FALSE      TRUE
+               FALSE 8552.84401 13577.156
+               TRUE    64.15599   101.844
+> c2$observed
+                    !is.na(mtch3)
+genes_eQTL$ctcf_eQTL FALSE  TRUE
+               FALSE  8550 13580
+               TRUE     67    99
+> 
+> # --------------------------------------------------------------------
+> # Compare q-value between genes with or without CTCF binding sites
+> # --------------------------------------------------------------------
+> 
+> dim(ctcf_all)
+[1] 171   5
+> ctcf_all[1:2,]
+                   nm         pval status       qval               tissue
+1: ENSG00000155761.13 3.642547e-05      1 0.05690087 Adipose_Subcutaneous
+2:  ENSG00000143545.8 3.787925e-06      1 0.02743863 Adipose_Subcutaneous
+> 
+> genes_with_CTCF = genes_eQTL$geneId[!is.na(mtch2)]
+> length(genes_with_CTCF)
+[1] 16983
+> 
+> ctcf_all$CTCF = rep(0, nrow(ctcf_all))
+> ctcf_all$CTCF[which(ctcf_all$nm %in% genes_with_CTCF)] = 1
+> table(ctcf_all$CTCF)
+
+  0   1 
+ 45 126 
+> 
+> 
+> genes_with_CTCF = genes_eQTL$geneId[!is.na(mtch3)]
+> length(genes_with_CTCF)
+[1] 13679
+> 
+> ctcf_all$CTCF_200bp = rep(0, nrow(ctcf_all))
+> ctcf_all$CTCF_200bp[which(ctcf_all$nm %in% genes_with_CTCF)] = 1
+> table(ctcf_all$CTCF_200bp)
+
+  0   1 
+ 71 100 
+> 
+> wilcox.test(ctcf_all$qval ~ ctcf_all$CTCF)
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  ctcf_all$qval by ctcf_all$CTCF
+W = 2681, p-value = 0.5902
+alternative hypothesis: true location shift is not equal to 0
+
+> wilcox.test(ctcf_all$qval ~ ctcf_all$CTCF_200bp)
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  ctcf_all$qval by ctcf_all$CTCF_200bp
+W = 3807.5, p-value = 0.4204
+alternative hypothesis: true location shift is not equal to 0
+
+> 
+> # --------------------------------------------------------------------
+> # Check ASReC data
+> # --------------------------------------------------------------------
+> 
+> table(ctcf_all$tissue == "Whole_Blood")
+
+FALSE  TRUE 
+  157    14 
+> genes2check = ctcf$nm[ctcf$tissue == "Whole_Blood"]
+> 
+> fnm = "../ASE_Whole_Blood_counts/Whole_Blood_preprASE_long.csv.gz"
+> asrec = fread(fnm, header=TRUE)
+> 
+> table(genes2check %in% asrec$V1)
+
+TRUE 
+  14 
+> 
+> dim(asrec)
+[1] 17157   671
+> asrec[1:2,1:5]
+                  V1 GTEX-11ZTT GTEX-15G1A GTEX-11WQK GTEX-17KNJ
+1: ENSG00000227232.5      0|0|0      0|0|0      3|2|0      0|0|0
+2: ENSG00000279457.4      0|0|1      0|0|0      1|0|1      0|0|1
+> 
+> gc()
+            used  (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)
+Ncells   3076104 164.3    8475120  452.7         NA  13243279  707.3
+Vcells 113877032 868.9  194967790 1487.5      32768 194230226 1481.9
+> sessionInfo()
+R version 4.1.2 (2021-11-01)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Big Sur 10.16
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats4    stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+[1] GenomicRanges_1.46.1 GenomeInfoDb_1.30.0  IRanges_2.28.0      
+[4] S4Vectors_0.32.3     BiocGenerics_0.40.0  data.table_1.14.2   
+
+loaded via a namespace (and not attached):
+ [1] zlibbioc_1.40.0        compiler_4.1.2         tools_4.1.2           
+ [4] XVector_0.34.0         GenomeInfoDbData_1.2.7 RCurl_1.98-1.5        
+ [7] R.methodsS3_1.8.1      R.utils_2.11.0         bitops_1.0-7          
+[10] R.oo_1.24.0           
+> q(save = "no")
+> proc.time()
+   user  system elapsed 
+ 43.920   3.770  48.799 

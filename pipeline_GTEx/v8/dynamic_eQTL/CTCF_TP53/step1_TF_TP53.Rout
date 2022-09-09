@@ -1,0 +1,248 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin17.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> # R CMD BATCH  '--args TP53' step1_TF.R step1_TF_TP53.Rout
+> args=(commandArgs(TRUE))
+> args
+[1] "TP53"
+> TF = args[1]
+> # TF = "TP53"
+> tf = tolower(TF)
+> 
+> library(data.table)
+> 
+> # --------------------------------------------------------------------
+> # read in results
+> # --------------------------------------------------------------------
+> 
+> tissues = list.dirs("../../Results", full.names=FALSE, 
++                     recursive=FALSE)
+> 
+> tf_all = NULL
+> 
+> for(t1 in tissues){
++   tf_file = sprintf("%s_%s_long_gPC_PF_01.csv", t1, tf)
++   dyn_eqtl = fread(sprintf("../../Results/%s/BetaBin/%s", t1, tf_file))
++   n1 = nrow(dyn_eqtl)
++   
++   dyn_eqtl = dyn_eqtl[dyn_eqtl$qval < 0.1,.(nm, pval, status, qval)]
++   n2 = nrow(dyn_eqtl)
++   dyn_eqtl$tissue = rep(t1, nrow(dyn_eqtl))
++   
++   tf_all = rbind(tf_all, dyn_eqtl)
++   cat(sprintf("%s, %d, %d\n", t1, n1, n2))
++ }
+Adipose_Subcutaneous, 10695, 13
+Adipose_Visceral_Omentum, 9813, 9
+Artery_Aorta, 9402, 2
+Artery_Coronary, 6743, 11
+Artery_Tibial, 10277, 13
+Brain_Caudate_basal_ganglia, 6868, 5
+Brain_Cerebellar_Hemisphere, 7838, 4
+Brain_Cortex, 7167, 2
+Brain_Frontal_Cortex_BA9, 6418, 4
+Brain_Nucleus_accumbens_basal_ganglia, 6842, 1
+Breast_Mammary_Tissue, 9696, 9
+Cells_Cultured_fibroblasts, 9932, 2
+Colon_Transverse, 9698, 2
+Esophagus_Gastroesophageal_Junction, 8530, 6
+Esophagus_Mucosa, 10280, 3
+Esophagus_Muscularis, 9964, 8
+Heart_Atrial_Appendage, 8669, 0
+Heart_Left_Ventricle, 7944, 9
+Lung, 11038, 0
+Muscle_Skeletal, 9380, 9
+Nerve_Tibial, 11495, 7
+Pancreas, 7541, 2
+Skin_Not_Sun_Exposed_Suprapubic, 10646, 6
+Skin_Sun_Exposed_Lower_leg, 11124, 0
+Stomach, 7862, 4
+Testis, 13298, 1
+Thyroid, 11779, 13
+Whole_Blood, 8546, 6
+> 
+> tf_all[1:2,]
+                   nm         pval status        qval               tissue
+1: ENSG00000162444.11 1.674094e-06      1 0.004083031 Adipose_Subcutaneous
+2:  ENSG00000135862.5 6.921113e-06      0 0.013504196 Adipose_Subcutaneous
+> 
+> table(tf_all$tissue)
+
+                 Adipose_Subcutaneous              Adipose_Visceral_Omentum 
+                                   13                                     9 
+                         Artery_Aorta                       Artery_Coronary 
+                                    2                                    11 
+                        Artery_Tibial           Brain_Caudate_basal_ganglia 
+                                   13                                     5 
+          Brain_Cerebellar_Hemisphere                          Brain_Cortex 
+                                    4                                     2 
+             Brain_Frontal_Cortex_BA9 Brain_Nucleus_accumbens_basal_ganglia 
+                                    4                                     1 
+                Breast_Mammary_Tissue            Cells_Cultured_fibroblasts 
+                                    9                                     2 
+                     Colon_Transverse   Esophagus_Gastroesophageal_Junction 
+                                    2                                     6 
+                     Esophagus_Mucosa                  Esophagus_Muscularis 
+                                    3                                     8 
+                 Heart_Left_Ventricle                       Muscle_Skeletal 
+                                    9                                     9 
+                         Nerve_Tibial                              Pancreas 
+                                    7                                     2 
+      Skin_Not_Sun_Exposed_Suprapubic                               Stomach 
+                                    6                                     4 
+                               Testis                               Thyroid 
+                                    1                                    13 
+                          Whole_Blood 
+                                    6 
+> 
+> t2 = table(tf_all$nm)
+> table(t2)
+t2
+  1   2 
+143   4 
+> t2[t2==2]
+
+ENSG00000008128.22 ENSG00000149591.16 ENSG00000204257.14  ENSG00000229043.2 
+                 2                  2                  2                  2 
+> 
+> # --------------------------------------------------------------------
+> # read in gene annotation information
+> # --------------------------------------------------------------------
+> 
+> gene_file = "gencode.v26.GRCh38.genes_gene_level_anno.txt"
+> gene_file = file.path("../../Reference", gene_file)
+> genes = fread(gene_file)
+> dim(genes)
+[1] 56200     8
+> genes[1:2,]
+               geneId  chr strand     start       end ensembl_gene_id
+1: ENSG00000000003.14 chrX      - 100627109 100639991 ENSG00000000003
+2:  ENSG00000000005.5 chrX      + 100584802 100599885 ENSG00000000005
+   hgnc_symbol                                       description
+1:      TSPAN6 tetraspanin 6 [Source:HGNC Symbol;Acc:HGNC:11858]
+2:        TNMD   tenomodulin [Source:HGNC Symbol;Acc:HGNC:17757]
+> 
+> table(tf_all$nm %in% genes$geneId)
+
+TRUE 
+ 151 
+> 
+> mat1 = match(unique(tf_all$nm), genes$geneId)
+> tf_genes = genes$hgnc_symbol[mat1]
+> length(tf_genes)
+[1] 147
+> table(tf_genes == "")
+
+FALSE  TRUE 
+  130    16 
+> 
+> tf_genes = tf_genes[which(tf_genes != "")]
+> 
+> # --------------------------------------------------------------------
+> # read in CTCF target gene information
+> # --------------------------------------------------------------------
+> 
+> ff1  = "Jasper/gene_attribute_matrix.txt.gz"
+> target_anno = fread(ff1, data.table=FALSE, na.strings = "na")
+> dim(target_anno)
+[1] 21549   114
+> target_anno[1:5,1:5]
+        #  #.1       GeneSym REST RREB1
+1       #    #            NA   NA    NA
+2 GeneSym   NA GeneID/GeneID 5978  6239
+3   LIMD1 <NA>          8994    0     0
+4   TAAR2 <NA>          9287    0     0
+5 MARCH10 <NA>        162333    0     0
+> 
+> table(target_anno$TP53)
+
+    0     1  7157 
+18698  2849     1 
+> table(target_anno$CTCF)
+
+    0     1 10664 
+21512    35     1 
+> 
+> tf_targets = target_anno[which(target_anno[[TF]] == 1),1]
+> length(tf_targets)
+[1] 2849
+> 
+> all_targets = target_anno[-(1:3),1]
+> 
+> table(tf_genes %in% tf_targets)
+
+FALSE  TRUE 
+  108    22 
+> table(all_targets %in% tf_genes, all_targets %in% tf_targets)
+       
+        FALSE  TRUE
+  FALSE 18609  2827
+  TRUE     88    22
+> c1 = chisq.test(all_targets %in% tf_genes, all_targets %in% tf_targets)
+> 
+> c1
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  all_targets %in% tf_genes and all_targets %in% tf_targets
+X-squared = 3.8519, df = 1, p-value = 0.04969
+
+> c1$statistic
+X-squared 
+ 3.851887 
+> c1$observed
+                         all_targets %in% tf_targets
+all_targets %in% tf_genes FALSE  TRUE
+                    FALSE 18609  2827
+                    TRUE     88    22
+> c1$expected
+                         all_targets %in% tf_targets
+all_targets %in% tf_genes       FALSE       TRUE
+                    FALSE 18601.54516 2834.45484
+                    TRUE     95.45484   14.54516
+> 
+> gc()
+          used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
+Ncells  688588 36.8    1452894 77.6         NA   761579 40.7
+Vcells 5945049 45.4   10146329 77.5      32768  8385413 64.0
+> sessionInfo()
+R version 4.1.2 (2021-11-01)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Big Sur 10.16
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] data.table_1.14.2
+
+loaded via a namespace (and not attached):
+[1] compiler_4.1.2    R.methodsS3_1.8.1 R.utils_2.11.0    R.oo_1.24.0      
+> q(save = "no")
+> proc.time()
+   user  system elapsed 
+  1.123   0.357   2.350 

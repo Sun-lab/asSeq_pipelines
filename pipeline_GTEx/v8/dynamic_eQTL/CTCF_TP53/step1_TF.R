@@ -1,8 +1,12 @@
 
-library(data.table)
-
-TF = "CTCF"
+# R CMD BATCH  '--args TP53' step1_TF.R step1_TF_TP53.Rout
+args=(commandArgs(TRUE))
+args
+TF = args[1]
+# TF = "TP53"
 tf = tolower(TF)
+
+library(data.table)
 
 # --------------------------------------------------------------------
 # read in results
@@ -52,16 +56,12 @@ length(tf_genes)
 table(tf_genes == "")
 
 tf_genes = tf_genes[which(tf_genes != "")]
-cat(tf_genes, sep="\n")
 
 # --------------------------------------------------------------------
 # read in CTCF target gene information
 # --------------------------------------------------------------------
 
-dir1 = "~/research/data/human/harmonizome/Jaspar\ PWMs"
-ff1  = "gene_attribute_matrix.txt.gz"
-ff1  = file.path(dir1, ff1)
-
+ff1  = "Jasper/gene_attribute_matrix.txt.gz"
 target_anno = fread(ff1, data.table=FALSE, na.strings = "na")
 dim(target_anno)
 target_anno[1:5,1:5]
@@ -76,7 +76,12 @@ all_targets = target_anno[-(1:3),1]
 
 table(tf_genes %in% tf_targets)
 table(all_targets %in% tf_genes, all_targets %in% tf_targets)
-chisq.test(all_targets %in% tf_genes, all_targets %in% tf_targets)
+c1 = chisq.test(all_targets %in% tf_genes, all_targets %in% tf_targets)
+
+c1
+c1$statistic
+c1$observed
+c1$expected
 
 gc()
 sessionInfo()
