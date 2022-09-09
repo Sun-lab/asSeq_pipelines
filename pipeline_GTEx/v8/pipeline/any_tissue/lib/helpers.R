@@ -89,7 +89,7 @@ replaceOutliers <- function(object, trim=.2, cooksCutoff, minReplicates=1, which
     stop("first run DESeq, nbinomWaldTest, or nbinomLRT to identify outliers")
   }
   if (minReplicates < 1) {
-    stop("at least 3 replicates are necessary in order to indentify a sample as a count outlier")
+    stop("at least 1 replicates are necessary in order to indentify a sample as a count outlier")
   }
   stopifnot(is.numeric(minReplicates) & length(minReplicates) == 1)
   p <- ncol(attr(object,"modelMatrix"))
